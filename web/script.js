@@ -10,14 +10,12 @@ const confidenceEl = document.getElementById('confidence');
 const explainEl = document.getElementById('explain');
 const ridEl = document.getElementById('rid');
 
-// ⬇️ Cambia esto si ya tienes endpoint (mismo dominio o CORS habilitado)
-const PREDICT_URL = './predict.json'; // placeholder. Ej.: 'https://tu-api.onrender.com/predict'
+const PREDICT_URL = './predict.json';
 
 function toPayload(fd){
   const o = {};
   for (const [k,v] of fd.entries()){
     if (v === '') continue;
-    // convierte numéricos cuando aplique
     o[k] = isNaN(v) || ['kepid'].includes(k) ? v : Number(v);
   }
   return o;
@@ -42,8 +40,8 @@ function clearError(){
 function paintLabel(label){
   const L = String(label).toLowerCase();
   labelPill.classList.remove('ok','warn','bad');
-  if (L.includes('planeta') && !L.includes('candidato')) labelPill.classList.add('ok');
-  else if (L.includes('candidato')) labelPill.classList.add('warn');
+  if (L.includes('planet') && !L.includes('candidate')) labelPill.classList.add('ok');
+  else if (L.includes('candidate')) labelPill.classList.add('warn');
   else labelPill.classList.add('bad');
   labelPill.textContent = String(label);
 }
@@ -53,7 +51,7 @@ form.addEventListener('submit', async (e)=>{
   clearError();
 
   if (!form.checkValidity()){
-    showError('Revisa los campos requeridos y rangos numéricos.');
+    showError('Check required fields and numerical ranges.');
     return;
   }
 
@@ -61,18 +59,12 @@ form.addEventListener('submit', async (e)=>{
   setLoading(true);
 
   try{
-    // Si usas API real:
-    // const res = await fetch(PREDICT_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
-    // if (!res.ok) throw new Error('Error de predicción');
-    // const data = await res.json();
-
-    // Mock para entorno estático (borra cuando conectes backend)
     await new Promise(r => setTimeout(r, 800));
     const score = Math.random();
     const data = {
-      label: score > 0.7 ? 'Planeta' : (score > 0.4 ? 'Candidato' : 'No planetario'),
+      label: score > 0.7 ? 'Planet' : (score > 0.4 ? 'Candidate' : 'Not planetary'),
       confidence: (0.65 + Math.random()*0.35).toFixed(2),
-      explain: 'Modelo basado en parámetros de tránsito/estrella.',
+      explain: 'Model based in transit/star params.',
       request_id: payload.kepid || (Date.now().toString(36))
     };
 
@@ -86,7 +78,7 @@ form.addEventListener('submit', async (e)=>{
 
   }catch(err){
     console.error(err);
-    showError('No se pudo obtener la predicción. Intenta de nuevo.');
+    showError('Could not obtain prediction. Try again.');
   }finally{
     setLoading(false);
   }
