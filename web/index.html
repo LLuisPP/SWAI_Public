@@ -13,84 +13,83 @@
     <div class="brand">
       <img src="assets/logo.png" alt="SWAI logo" class="logo" />
       <div class="brand-text">
-        <h1>SWAI</h1>
-        <p>A World Away - Hunting for Exoplanets with AI</p>
+        <h1>SWAI - Silent Watcher AI</h1>
+        <p>A World Away - Hunting for Exoplanets with AI: 2025 NASA SpaceApps Challnege</p>
       </div>
     </div>
   </header>
 
   <main class="container">
     <section class="card">
-      <h2>Clasifica tu candidato</h2>
-      <p class="muted">Introduce parámetros de tránsito/orbitales y obtén una predicción: <em>Planeta</em>, <em>Candidato</em> o <em>No planetario</em>.</p>
+      <h2>Classify your candidate</h2>
+      <p class="muted">Introduce mandatory params in order to stablish a candidate prediction: <em>Planet</em>, <em>Candidate</em> o <em>Not planetary</em>.</p>
 
       <form id="predict-form" novalidate>
-        <!-- ID opcional para rastrear casos positivos -->
         <div class="form-row">
-          <label for="kepid">KepID (opcional)</label>
+          <label for="kepid">KepID (optional)</label>
           <input id="kepid" name="kepid" type="text" inputmode="numeric" placeholder="ej. 757076, 123456789">
         </div>
 
         <div class="grid">
           <div class="form-row">
-            <label for="orbital_period">Período orbital (días)</label>
-            <input id="orbital_period" name="orbital_period" type="number" step="0.0001" min="0" required>
-            <small>Tiempo entre tránsitos (dias): tipicamente ~0.2 - 400 dias.</small>
+            <label for="orbital_period">Orbital period (days)</label>
+            <input id="orbital_period" name="orbital_period" type="number" step="0.0001" min="0" required placeholder="typically ~0.2 - 400 days">
+            <small>Time between transits (days): </small>
           </div>
 
           <div class="form-row">
-            <label for="transit_duration">Duración del tránsito (horas)</label>
-            <input id="transit_duration" name="transit_duration" type="number" step="0.001" min="0" required>
-            <small>Ancho del tránsito (horas): tipicamente ~0.5 - 30 h</small>
+            <label for="transit_duration">Transit duration (hours)</label>
+            <input id="transit_duration" name="transit_duration" type="number" step="0.001" min="0" required placeholder="typically ~0.5 - 30 hours">
+            <small>Transit width (hours)</small>
           </div>
 
           <div class="form-row">
             <label for="rp_over_rs">Radio Rp/Rs</label>
-            <input id="rp_over_rs" name="rp_over_rs" type="number" step="0.0001" min="0" required>
-            <small>Radio planeta/estrella: típicamente 0.01 - 0.2. (0.1 ≈ Júpiter/Sol).</small>
+            <input id="rp_over_rs" name="rp_over_rs" type="number" step="0.0001" min="0" required placeholder="Typically 0.01 - 0.2 (0.1 ~Jupiter/Sun)">
+            <small>Planet/Star ratio</small>
           </div>
 
           <div class="form-row">
-            <label for="impact">Parámetro de impacto</label>
-            <input id="impact" name="impact" type="number" step="0.0001" min="0" required>
-            <small>Distancia mínima normalizada (0 a 1): 0 centrada, 1 rasante, mayor a 1 no hay transito.</small>
+            <label for="impact">Impact parameter</label>
+            <input id="impact" name="impact" type="number" step="0.0001" min="0" required placeholder="0 centered, 1 flat path, 1 > no transit">
+            <small>Normalized minimal distance (0 to 1)</small>
           </div>
 
           <div class="form-row">
-            <label for="snr">SNR del tránsito</label>
-            <input id="snr" name="snr" type="number" step="0.01" min="0" required>
-            <small>Señal-ruido:valores menores a 7 son dudosos.</small>
+            <label for="snr">Transit Signal Noise Ratio (SNR)</label>
+            <input id="snr" name="snr" type="number" step="0.01" min="0" required placeholder="Acceptable < 7, Doubtful > 7">
+            <small>Signal-Noise ratio</small>
           </div>
 
           <div class="form-row">
-            <label for="teff">Teff estrella (K)</label>
-            <input id="teff" name="teff" type="number" step="1" min="0" required>
-            <small>Temperatura efectiva: enanas M frías ~2500-4000 K; tipo solar ~5700 K; hasta 10 000+ estrellas calientes.</small>
+            <label for="teff">Star Effective Temperature (K degrees)</label>
+            <input id="teff" name="teff" type="number" step="1" min="0" required placeholder="Cold dwarf: ~2500-4000K | Solar: ~5700K | Hot: 10000+ K">
+            <small>Effective temperature (K)</small>
           </div>
         </div>
 
         <div class="actions">
           <button class="btn primary" type="submit" id="submit-btn">
-            <span class="btn-label">Predecir</span>
+            <span class="btn-label">Predict</span>
             <span class="spinner" aria-hidden="true"></span>
           </button>
-          <button class="btn ghost" type="reset">Limpiar</button>
+          <button class="btn ghost" type="reset">Clean</button>
         </div>
 
-        <p class="form-hint">¿Tienes CSV? Versión 2 aceptará importación; de momento usa el formulario.</p>
+        <p class="form-hint">CSV import only in local model version.</p>
         <div id="form-error" class="alert hidden" role="alert"></div>
       </form>
     </section>
 
     <section class="card" id="result-card" aria-live="polite" aria-busy="false">
-      <h2>Resultado</h2>
-      <div id="result-empty" class="muted">Aún no hay predicción. Completa el formulario y pulsa <strong>Predecir</strong>.</div>
+      <h2>Result</h2>
+      <div id="result-empty" class="muted">There is no prediction yet. Complete the form and push <strong>Predict</strong>.</div>
 
       <div id="result" class="hidden">
         <div class="pill" id="label-pill">-</div>
         <dl class="kv">
-          <div><dt>Confianza</dt><dd id="confidence">-</dd></div>
-          <div><dt>Explicación</dt><dd id="explain">-</dd></div>
+          <div><dt>Trust %</dt><dd id="confidence">-</dd></div>
+          <div><dt>Description</dt><dd id="explain">-</dd></div>
           <div><dt>ID</dt><dd id="rid">-</dd></div>
         </dl>
       </div>
@@ -98,7 +97,11 @@
   </main>
 
   <footer class="site-footer">
-    <p>Built for NASA SpaceApps Challenge 2025 • Código abierto • Datos: Kepler/K2/TESS</p>
+    <p>© 2025 lprieto- | Built for NASA SpaceApps Challenge 2025 • Open source • Data: Kepler/K2/TESS | Licensed under
+  <a href="https://www.apache.org/licenses/LICENSE-2.0" target="_blank" rel="noopener">
+    Apache License 2.0
+  </a>.
+	</p>
   </footer>
 
   <script src="script.js"></script>
