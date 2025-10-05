@@ -84,3 +84,63 @@ form.addEventListener('submit', async (e)=>{
   }
 });
 
+// document.addEventListener("DOMContentLoaded", () => {
+//   const sliders = [
+//     "orbital_period",
+//     "transit_duration",
+//     "rp_over_rs",
+//     "impact",
+//     "snr",
+//     "teff"
+//   ];
+
+//   sliders.forEach(id => {
+//     const slider = document.getElementById(id);
+//     const output = document.getElementById(`val_${id}`);
+//     if (slider && output) {
+//       slider.addEventListener("input", () => {
+//         output.textContent = slider.value;
+//       });
+//     }
+//   });
+// });
+
+document.addEventListener("DOMContentLoaded", () => {
+  const sliders = [
+    "orbital_period",
+    "transit_duration",
+    "rp_over_rs",
+    "impact",
+    "snr",
+    "teff"
+  ];
+
+  sliders.forEach(id => {
+    const slider = document.getElementById(id);
+    const output = document.getElementById(`val_${id}`);
+    if (slider && output) {
+      // valor inicial
+      output.textContent = slider.value;
+
+      // actualizar al mover
+      slider.addEventListener("input", () => {
+        output.textContent = slider.value;
+      });
+    }
+  });
+
+  // (opcional) observador para mostrar el GIF cuando aparezca el resultado
+  const result = document.getElementById("result");
+  const gif = document.getElementById("result-gif");
+  if (result && gif) {
+    const obs = new MutationObserver(() => {
+      const visible = !result.classList.contains("hidden");
+      gif.classList.toggle("hidden", !visible);
+      gif.setAttribute("aria-hidden", visible ? "false" : "true");
+    });
+    obs.observe(result, { attributes: true, attributeFilter: ["class"] });
+  }
+});
+
+
+

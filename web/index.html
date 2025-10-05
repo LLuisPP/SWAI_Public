@@ -14,7 +14,7 @@
       <img src="assets/logo.png" alt="SWAI logo" class="logo" />
       <div class="brand-text">
         <h1>SWAI - Silent Watcher AI</h1>
-        <p>A World Away - Hunting for Exoplanets with AI: 2025 NASA SpaceApps Challnege</p>
+        <p>A World Away - Hunting for Exoplanets with AI: 2025 NASA SpaceApps Challenge</p>
       </div>
     </div>
   </header>
@@ -22,7 +22,7 @@
   <main class="container">
     <section class="card">
       <h2>Classify your candidate</h2>
-      <p class="muted">Introduce mandatory params in order to stablish a candidate prediction: <em>Planet</em>, <em>Candidate</em> o <em>Not planetary</em>.</p>
+      <p class="muted">Adjust the parameters to establish a candidate prediction: <em>Planet</em>, <em>Candidate</em>, or <em>Not planetary</em>.</p>
 
       <form id="predict-form" novalidate>
         <div class="form-row">
@@ -31,41 +31,43 @@
         </div>
 
         <div class="grid">
+
           <div class="form-row">
             <label for="orbital_period">Orbital period (days)</label>
-            <input id="orbital_period" name="orbital_period" type="number" step="0.0001" min="0" required placeholder="typically ~0.2 - 400 days">
-            <small>Time between transits (days): </small>
+            <input id="orbital_period" name="orbital_period" type="range" min="0.1" max="400" step="0.1" value="100">
+            <div class="info">Typically ~0.2 - 400 days | Current: <span id="val_orbital_period">100</span></div>
           </div>
 
           <div class="form-row">
             <label for="transit_duration">Transit duration (hours)</label>
-            <input id="transit_duration" name="transit_duration" type="number" step="0.001" min="0" required placeholder="typically ~0.5 - 30 hours">
-            <small>Transit width (hours)</small>
+            <input id="transit_duration" name="transit_duration" type="range" min="0.5" max="30" step="0.1" value="10">
+            <div class="info">Typically ~0.5 - 30 hours | Current: <span id="val_transit_duration">10</span></div>
           </div>
 
           <div class="form-row">
             <label for="rp_over_rs">Radio Rp/Rs</label>
-            <input id="rp_over_rs" name="rp_over_rs" type="number" step="0.0001" min="0" required placeholder="Typically 0.01 - 0.2 (0.1 ~Jupiter/Sun)">
-            <small>Planet/Star ratio</small>
+            <input id="rp_over_rs" name="rp_over_rs" type="range" min="0.01" max="0.2" step="0.001" value="0.1">
+            <div class="info">Planet/Star ratio (0.01 - 0.2) | Current: <span id="val_rp_over_rs">0.1</span></div>
           </div>
 
           <div class="form-row">
             <label for="impact">Impact parameter</label>
-            <input id="impact" name="impact" type="number" step="0.0001" min="0" required placeholder="0 centered, 1 flat path, 1 > no transit">
-            <small>Normalized minimal distance (0 to 1)</small>
+            <input id="impact" name="impact" type="range" min="0" max="1" step="0.01" value="0.5">
+            <div class="info">Normalized distance (0 to 1) | Current: <span id="val_impact">0.5</span></div>
           </div>
 
           <div class="form-row">
             <label for="snr">Transit Signal Noise Ratio (SNR)</label>
-            <input id="snr" name="snr" type="number" step="0.01" min="0" required placeholder="Acceptable < 7, Doubtful > 7">
-            <small>Signal-Noise ratio</small>
+            <input id="snr" name="snr" type="range" min="0" max="20" step="0.1" value="7">
+            <div class="info">Acceptable &lt; 7, Doubtful &gt; 7 | Current: <span id="val_snr">7</span></div>
           </div>
 
           <div class="form-row">
             <label for="teff">Star Effective Temperature (K degrees)</label>
-            <input id="teff" name="teff" type="number" step="1" min="0" required placeholder="Cold dwarf: ~2500-4000K | Solar: ~5700K | Hot: 10000+ K">
-            <small>Effective temperature (K)</small>
+            <input id="teff" name="teff" type="range" min="2500" max="10000" step="100" value="5700">
+            <div class="info">Cold dwarf: 2500-4000 | Solar: ~5700 | Hot: 10000+ | Current: <span id="val_teff">5700</span></div>
           </div>
+
         </div>
 
         <div class="actions">
@@ -93,11 +95,14 @@
           <div><dt>ID</dt><dd id="rid">-</dd></div>
         </dl>
       </div>
+      <figure id="result-gif" class="result-visual hidden" aria-hidden="true">
+        <img src="assets/scan.gif" alt="Exoplanet scan animation" loading="lazy">
+      </figure>
     </section>
   </main>
 
   <footer class="site-footer">
-    <p>© 2025 lprieto- | Built for NASA SpaceApps Challenge 2025 • Open source • Data: Kepler/K2/TESS | Licensed under
+    <p>© 2025 SWAI Team | Built for NASA SpaceApps Challenge 2025 • Open source • Data: Kepler/K2/TESS | Licensed under
   <a href="https://www.apache.org/licenses/LICENSE-2.0" target="_blank" rel="noopener">
     Apache License 2.0
   </a>.
@@ -107,4 +112,3 @@
   <script src="script.js"></script>
 </body>
 </html>
-
