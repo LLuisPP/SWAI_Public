@@ -168,44 +168,34 @@ input[type="range"]::-webkit-slider-thumb {
   margin-top: 4px;
 }
 
-
-/* giff
-.result-visual {
-  width: 100%;
-  margin-top: 12px;
-  display: grid;
-  place-items: center;
+/* --- GIF bajo el resultado (compatible con el JS de altura restante) --- */
+.card#result-card{
+  display:flex;
+  flex-direction:column;
 }
 
-.result-visual img {
-  width: min(680px, 100%);
-  height: clamp(140px, 28vh, 360px);
-  aspect-ratio: 16 / 9;       
-  object-fit: contain;        
-  border-radius: 12px;
-  box-shadow: 0 6px 28px rgba(0,0,0,.35);
-  image-rendering: auto;
-}*/
-
-
-
-/* .result-visual {
-  width: 100%;
-  flex-grow: 1;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  overflow: hidden;
-  margin-top: 12px;
+.result-visual{
+  width:100%;
+  margin-top:12px;
+  overflow:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
 
-.result-visual img {
-  width: 100%;
-  height: auto;
-  max-height: calc(100vh - 400px);
-  object-fit: contain;
-  aspect-ratio: 16 / 9;
-  border-radius: 12px;
-  box-shadow: 0 6px 28px rgba(0, 0, 0, 0.35);
-  transition: all 0.3s ease-in-out;
-} */
+/* El <figure> recibe la altura por JS. El <img> nunca se ensancha más que el contenedor */
+.result-visual img{
+  display:block;
+  max-width:100%;
+  max-height:100%;
+  width:auto;         /* que mande la proporción natural */
+  height:100%;        /* rellena el alto del <figure> */
+  object-fit:contain; /* sin deformar ni recortar */
+  border-radius:12px;
+  box-shadow: var(--shadow);
+}
+
+/* Afinado móvil: reduce un poco la altura efectiva si hace falta */
+@media (max-width: 600px){
+  .result-visual{ margin-top:10px; }
+}

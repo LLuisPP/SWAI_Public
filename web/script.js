@@ -12,6 +12,24 @@ const ridEl = document.getElementById('rid');
 
 const PREDICT_URL = './predict.json';
 
+/* === NUEVO: mapping de etiqueta -> GIF === */
+const PRED_GIFS = {
+  "planet": "assets/planet.gif",
+  "candidate": "assets/candidate.gif",
+  "not planetary": "assets/not_planetary.gif",
+  "not_planetary": "assets/not_planetary.gif" // por si llega con underscore
+};
+// Preload para evitar parpadeo
+Object.values(PRED_GIFS).forEach(src => { const img = new Image(); img.src = src; });
+
+function normLabel(label) {
+  return (label || "")
+    .toLowerCase()
+    .replace(/[-_]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function toPayload(fd){
   const o = {};
   for (const [k,v] of fd.entries()){
@@ -46,6 +64,32 @@ function paintLabel(label){
   labelPill.textContent = String(label);
 }
 
+/* === NUEVO: aplicar UI (pill + GIF) según la etiqueta === */
+function applyPredictionUI(labelRaw){
+  const label = normLabel(labelRaw);
+  paintLabel(labelRaw);
+
+  const gifFig = document.getElementById('result-gif');
+  const gifImg = gifFig ? gifFig.querySelector('img') : null;
+  const src = PRED_GIFS[label];
+
+  if (gifFig && gifImg && src){
+    gifImg.src = src;
+    gifImg.alt = `${labelRaw} animation`;
+    gifFig.classList.remove('hidden');
+    gifFig.setAttribute('aria-hidden','false');
+  } else if (gifFig){
+    // si no hay match, ocultamos el GIF
+    gifFig.classList.add('hidden');
+    gifFig.setAttribute('aria-hidden','true');
+  }
+
+  // si tienes definida la función de autoajuste de altura, recalcula
+  if (typeof resizeResultGif === 'function'){
+    requestAnimationFrame(resizeResultGif);
+  }
+}
+
 form.addEventListener('submit', async (e)=>{
   e.preventDefault();
   clearError();
@@ -71,7 +115,10 @@ form.addEventListener('submit', async (e)=>{
     // Pinta resultado
     resultEmpty.classList.add('hidden');
     resultBox.classList.remove('hidden');
-    paintLabel(data.label);
+
+    // === CAMBIO: antes llamabas a paintLabel; ahora usamos applyPredictionUI ===
+    applyPredictionUI(data.label);
+
     confidenceEl.textContent = `${Number(data.confidence*100 || data.confidence).toFixed(0)}%`;
     explainEl.textContent = data.explain;
     ridEl.textContent = data.request_id;
@@ -83,27 +130,6 @@ form.addEventListener('submit', async (e)=>{
     setLoading(false);
   }
 });
-
-// document.addEventListener("DOMContentLoaded", () => {
-//   const sliders = [
-//     "orbital_period",
-//     "transit_duration",
-//     "rp_over_rs",
-//     "impact",
-//     "snr",
-//     "teff"
-//   ];
-
-//   sliders.forEach(id => {
-//     const slider = document.getElementById(id);
-//     const output = document.getElementById(`val_${id}`);
-//     if (slider && output) {
-//       slider.addEventListener("input", () => {
-//         output.textContent = slider.value;
-//       });
-//     }
-//   });
-// });
 
 document.addEventListener("DOMContentLoaded", () => {
   const sliders = [
@@ -129,7 +155,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // (opcional) observador para mostrar el GIF cuando aparezca el resultado
+  // observador para mostrar/ocultar el GIF en sincronía con #result
   const result = document.getElementById("result");
   const gif = document.getElementById("result-gif");
   if (result && gif) {
@@ -137,10 +163,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const visible = !result.classList.contains("hidden");
       gif.classList.toggle("hidden", !visible);
       gif.setAttribute("aria-hidden", visible ? "false" : "true");
+      // ajustar altura si procede
+      if (visible && typeof resizeResultGif === 'function'){
+        requestAnimationFrame(resizeResultGif);
+      }
     });
     obs.observe(result, { attributes: true, attributeFilter: ["class"] });
   }
 });
-
-
-
