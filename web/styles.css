@@ -132,3 +132,12 @@ small{color:var(--muted); font-size:12px}
 /* Animations */
 @keyframes spin{to{transform: rotate(360deg)}}
 
+/* === Fondo de la web === */
+body {
+  background: url('assets/background.jpg') no-repeat center center fixed;
+  background-size: cover;
+  background-color: #000; /* color de respaldo si no hay imagen */
+  margin: 0;
+  font-family: system-ui, sans-serif;
+}
+
