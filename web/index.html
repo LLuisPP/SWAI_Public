@@ -34,51 +34,51 @@
       <form id="predict-form" novalidate>
         <div class="form-row">
           <label for="kepid">KepID (optional)</label>
-          <input id="kepid" name="kepid" type="text" inputmode="numeric" placeholder="ej. 757076, 123456789">
+          <input id="kepid" name="kepid" type="text" inputmode="numeric" placeholder="ej. K757076">
         </div>
 
         <div class="grid">
           <div class="form-row">
-            <label for="orbital_period">Orbital period (days)</label>
+            <label for="orbital_period">Orbital period (days): <span id="val_orbital_period">100</span></label>
             <input id="orbital_period" name="orbital_period" type="range" min="0.1" max="400" step="0.1" value="100">
-            <div class="info">Typically ~0.2 - 400 days | Current: <span id="val_orbital_period">100</span></div>
+            <div class="info" style="font-size: 10px; color: rgb(64, 46, 226);">Typically ~0.2 - 400 days</div>
           </div>
 
           <div class="form-row">
-            <label for="transit_duration">Transit duration (hours)</label>
+            <label for="transit_duration">Transit duration (hours): <span id="val_transit_duration">10</span></label>
             <input id="transit_duration" name="transit_duration" type="range" min="0.5" max="30" step="0.1" value="10">
-            <div class="info">Typically ~0.5 - 30 hours | Current: <span id="val_transit_duration">10</span></div>
+            <div class="info" style="font-size: 10px; color: rgb(64, 46, 226);">Typically ~0.5 - 30 hours</div>
           </div>
 
           <div class="form-row">
-            <label for="rp_over_rs">Radius ratio (Rp/Rs)</label>
+            <label for="rp_over_rs">Radius ratio (Rp/Rs): <span id="val_rp_over_rs">0.1</span></label>
             <input id="rp_over_rs" name="rp_over_rs" type="range" min="0.01" max="0.2" step="0.001" value="0.1">
-            <div class="info">Planet/Star ratio (0.01 - 0.2) | Current: <span id="val_rp_over_rs">0.1</span></div>
+            <div class="info" style="font-size: 10px; color: rgb(64, 46, 226);">Planet/Star ratio (0.01 - 0.2)</div>
           </div>
 
           <div class="form-row">
-            <label for="planet_radius">Planet radius (R_earth)</label>
+            <label for="planet_radius">Planet radius (R_earth): <span id="val_planet_radius">1.0</span></label>
             <input id="planet_radius" name="planet_radius" type="range" min="0.3" max="20" step="0.1" value="1.0">
-            <div class="info">Typical 0.3 – 20 R⊕ | Current: <span id="val_planet_radius">1.0</span></div>
+            <div class="info" style="font-size: 10px; color: rgb(64, 46, 226);">Typical R⊕: 0.3 – 20</div>
           </div>
 
           <!-- sliders informativos que NO entran al modelo actual -->
           <div class="form-row">
-            <label for="impact">Impact parameter</label>
+            <label for="impact">Impact parameter <span id="val_impact">0.5</span></label>
             <input id="impact" name="impact" type="range" min="0" max="1" step="0.01" value="0.5">
-            <div class="info">Normalized distance (0 to 1) | Current: <span id="val_impact">0.5</span></div>
+            <div class="info" style="font-size: 10px; color: rgb(64, 46, 226);">Normalized distance (0 to 1)</div>
           </div>
 
           <div class="form-row">
-            <label for="snr">Transit Signal-to-Noise Ratio (SNR)</label>
+            <label for="snr">Transit Signal-to-Noise Ratio (SNR): <span id="val_snr">7</span></label>
             <input id="snr" name="snr" type="range" min="0" max="20" step="0.1" value="7">
-            <div class="info">Acceptable &lt; 7, Doubtful &gt; 7 | Current: <span id="val_snr">7</span></div>
+            <div class="info" style="font-size: 10px; color: rgb(64, 46, 226);">Acceptable &lt; 7, Doubtful &gt; 7</div>
           </div>
 
           <div class="form-row">
-            <label for="teff">Star Effective Temperature (K)</label>
+            <label for="teff">Star Effective Temperature (K): <span id="val_teff">5700</span></label>
             <input id="teff" name="teff" type="range" min="2500" max="10000" step="100" value="5700">
-            <div class="info">Cold dwarf: 2500-4000 | Solar: ~5700 | Hot: 10000+ | Current: <span id="val_teff">5700</span></div>
+            <div class="info" style="font-size: 10px; color: rgb(64, 46, 226);">Cold dwarf: 2500-4000 | Solar: ~5700 | Hot: 10000+</div>
           </div>
         </div>
 
@@ -105,19 +105,19 @@
         <div class="pill" id="label-pill">-</div>
         <dl class="kv">
           <div><dt>Confidence</dt><dd id="confidence">-</dd></div>
-          <div><dt>Description</dt><dd id="explain">-</dd></div>
-          <div><dt>ID</dt><dd id="rid">-</dd></div>
+          <details id="prediction" hidden>
+            <summary>Prediction</summary>
+            <pre id="prediction-lines" style="white-space:pre-wrap"></pre>
+          </details>
+          <div hidden><dt>Description</dt><dd id="explain">-</dd></div>
+          <div hidden><dt>ID</dt><dd id="rid">-</dd></div>
         </dl>
       </div>
 
       <figure id="result-visual" class="result-visual" aria-hidden="true" hidden>
-        <img id="result-gif" src="" alt="Prediction visual" loading="lazy">
+        <img id="result-gif" src="" alt="" loading="lazy">
       </figure>
 
-      <details id="debug" hidden>
-        <summary>Debug</summary>
-        <pre id="debug-lines" style="white-space:pre-wrap"></pre>
-      </details>
     </section>
   </main>
 

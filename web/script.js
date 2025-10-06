@@ -13,12 +13,11 @@ const ridEl       = document.getElementById('rid');
 const resultVisual = document.getElementById('result-visual'); // figure
 const resultGifImg = document.getElementById('result-gif');
 
-const debugBox    = document.getElementById('debug');
-const debugLines  = document.getElementById('debug-lines');
+const predictionBox    = document.getElementById('prediction');
+const predictionLines  = document.getElementById('prediction-lines');
 
 const MODEL_URL = './model.onnx';
 const META_URL  = './meta.json';
-
 const PRED_GIFS = {
   "Planet": "assets/planet.gif",
   "Candidate": "assets/candidate.gif",
@@ -46,8 +45,8 @@ function resetResults(){
   if (resultGifImg) resultGifImg.src = '';
   resultVisual.hidden = true;
 
-  if (debugBox) debugBox.hidden = true;
-  if (debugLines) debugLines.textContent = '';
+  if (predictionBox) predictionBox.hidden = true;
+  if (predictionLines) predictionLines.textContent = '';
 }
 
 function applyPredictionUI(labelRaw, confidence, explain, rid, probs=null, classes=null){
@@ -72,10 +71,10 @@ function applyPredictionUI(labelRaw, confidence, explain, rid, probs=null, class
   resultBox.hidden   = false;
   resultCard.hidden  = false;
 
-  if (probs && classes && debugBox && debugLines) {
+  if (probs && classes && predictionBox && predictionLines) {
     const lines = classes.map((c,i)=>`${c}: ${(probs[i]*100).toFixed(1)}%`).join('\n');
-    debugLines.textContent = lines;
-    debugBox.hidden = false;
+    predictionLines.textContent = lines;
+    predictionBox.hidden = false;
   }
 }
 

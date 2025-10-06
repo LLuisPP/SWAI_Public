@@ -24,7 +24,6 @@ body{
   color:var(--text);
 }
 
-/* Header */
 .site-header{
   position: sticky; top:0; z-index:10;
   backdrop-filter: blur(8px);
@@ -36,7 +35,6 @@ body{
 .brand-text h1{margin:0; font-size:20px; letter-spacing:.4px}
 .brand-text p{margin:0; color:var(--muted); font-size:13px}
 
-/* Layout */
 .container{
   max-width:1100px; margin:24px auto; padding:0 16px;
   display:grid; gap:20px; grid-template-columns: 1.2fr .8fr;
@@ -55,7 +53,6 @@ h2{margin:0 0 10px 0; font-size:18px}
 .muted{color:var(--muted)}
 .form-hint{color:var(--muted); font-size:12px; margin-top:8px}
 
-/* Form */
 form{display:block}
 .grid{
   display:grid; gap:16px;
@@ -83,7 +80,6 @@ input:focus{
 input:invalid{border-color: #3b4254}
 small{color:var(--muted); font-size:12px}
 
-/* Buttons */
 .actions{display:flex; gap:12px; margin-top:14px}
 .btn{
   border:1px solid var(--ring); background:#0f1421; color:var(--text);
@@ -97,7 +93,6 @@ small{color:var(--muted); font-size:12px}
 }
 .btn.ghost:hover{border-color: var(--brand)}
 
-/* Spinner inside button */
 .spinner{
   display:none; width:16px; height:16px; margin-left:8px;
   border-radius:50%; border:2px solid rgba(0,0,0,.2); border-top-color: rgba(0,0,0,.6);
@@ -106,7 +101,6 @@ small{color:var(--muted); font-size:12px}
 .loading .spinner{display:inline-block}
 .loading .btn-label{opacity:.75}
 
-/* Alerts / pills */
 .alert{
   margin-top:12px; padding:10px 12px; border-radius:10px; border:1px solid var(--ring); background:#0f1421;
 }
@@ -120,23 +114,19 @@ small{color:var(--muted); font-size:12px}
 .pill.warn{background: rgba(245,158,11,.18); border-color: rgba(245,158,11,.35)}
 .pill.bad{background: rgba(239,68,68,.18); border-color: rgba(239,68,68,.35)}
 
-/* Key/Value list */
 .kv{display:grid; gap:8px}
 .kv > div{display:flex; gap:10px}
 .kv dt{width:110px; color:var(--muted)}
 .kv dd{margin:0}
 
-/* Footer */
 .site-footer{max-width:1100px; margin:14px auto 36px; padding:0 16px; color:var(--muted); font-size:13px}
 
-/* Animations */
 @keyframes spin{to{transform: rotate(360deg)}}
 
-/* === Fondo de la web === */
 body {
   background: url('assets/background.jpg') no-repeat center center fixed;
   background-size: cover;
-  background-color: #000; /* color de respaldo si no hay imagen */
+  background-color: #000;
   margin: 0;
   font-family: system-ui, sans-serif;
 }
@@ -168,7 +158,6 @@ input[type="range"]::-webkit-slider-thumb {
   margin-top: 4px;
 }
 
-/* --- GIF bajo el resultado (compatible con el JS de altura restante) --- */
 .card#result-card{
   display:flex;
   flex-direction:column;
@@ -183,19 +172,37 @@ input[type="range"]::-webkit-slider-thumb {
   justify-content:center;
 }
 
-/* El <figure> recibe la altura por JS. El <img> nunca se ensancha más que el contenedor */
 .result-visual img{
   display:block;
   max-width:100%;
   max-height:100%;
-  width:auto;         /* que mande la proporción natural */
-  height:100%;        /* rellena el alto del <figure> */
-  object-fit:contain; /* sin deformar ni recortar */
+  width:auto;
+  height:100%;
+  object-fit:contain;
   border-radius:12px;
   box-shadow: var(--shadow);
 }
 
-/* Afinado móvil: reduce un poco la altura efectiva si hace falta */
 @media (max-width: 600px){
   .result-visual{ margin-top:10px; }
+}
+
+#result-visual {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  overflow: hidden;
+  border-radius: 12px;
+  margin-top: 1rem;
+}
+
+#result-visual img {
+  width: 100%;
+  height: auto;
+  max-height: 250px;
+  object-fit: contain;
+  border-radius: inherit;
 }
