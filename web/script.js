@@ -1,173 +1,205 @@
-const form = document.getElementById('predict-form');
-const submitBtn = document.getElementById('submit-btn');
-const formError = document.getElementById('form-error');
+const form        = document.getElementById('predict-form');
+const submitBtn   = document.getElementById('submit-btn');
+const formError   = document.getElementById('form-error');
 
-const resultCard = document.getElementById('result-card');
+const resultCard  = document.getElementById('result-card');
 const resultEmpty = document.getElementById('result-empty');
-const resultBox = document.getElementById('result');
-const labelPill = document.getElementById('label-pill');
-const confidenceEl = document.getElementById('confidence');
-const explainEl = document.getElementById('explain');
-const ridEl = document.getElementById('rid');
+const resultBox   = document.getElementById('result');       // texto (pill + kv)
+const labelPill   = document.getElementById('label-pill');
+const confidenceEl= document.getElementById('confidence');
+const explainEl   = document.getElementById('explain');
+const ridEl       = document.getElementById('rid');
 
-const PREDICT_URL = './predict.json';
+const resultVisual = document.getElementById('result-visual'); // figure
+const resultGifImg = document.getElementById('result-gif');
 
-/* === NUEVO: mapping de etiqueta -> GIF === */
+const debugBox    = document.getElementById('debug');
+const debugLines  = document.getElementById('debug-lines');
+
+const MODEL_URL = './model.onnx';
+const META_URL  = './meta.json';
+
 const PRED_GIFS = {
-  "planet": "assets/planet.gif",
-  "candidate": "assets/candidate.gif",
-  "not planetary": "assets/not_planetary.gif",
-  "not_planetary": "assets/not_planetary.gif" // por si llega con underscore
+  "Planet": "assets/planet.gif",
+  "Candidate": "assets/candidate.gif",
+  "Not planetary": "assets/not_planetary.gif",
 };
-// Preload para evitar parpadeo
-Object.values(PRED_GIFS).forEach(src => { const img = new Image(); img.src = src; });
 
-function normLabel(label) {
-  return (label || "")
-    .toLowerCase()
-    .replace(/[-_]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+let ortSession = null;
+let modelInputName = null;
+let modelOutputName = null;
+let meta = { features: [], classes: [] };
+
+function showError(msg){ formError.hidden = false; formError.textContent = msg; }
+function clearError(){ formError.hidden = true; formError.textContent=''; }
+
+function resetResults(){
+  resultCard.hidden  = true;
+  resultEmpty.hidden = false;
+  resultBox.hidden   = true;
+
+  labelPill.textContent    = '';
+  confidenceEl.textContent = '';
+  explainEl.textContent    = '';
+  ridEl.textContent        = '';
+
+  if (resultGifImg) resultGifImg.src = '';
+  resultVisual.hidden = true;
+
+  if (debugBox) debugBox.hidden = true;
+  if (debugLines) debugLines.textContent = '';
 }
 
-function toPayload(fd){
-  const o = {};
-  for (const [k,v] of fd.entries()){
-    if (v === '') continue;
-    o[k] = isNaN(v) || ['kepid'].includes(k) ? v : Number(v);
-  }
-  return o;
-}
+function applyPredictionUI(labelRaw, confidence, explain, rid, probs=null, classes=null){
+  const MAP = { "CONFIRMED":"Planet", "FALSE POSITIVE":"Not planetary", "CANDIDATE":"Candidate" };
+  const uiLabel = MAP[labelRaw] || labelRaw || '—';
 
-function setLoading(isLoading){
-  submitBtn.classList.toggle('loading', isLoading);
-  form.querySelectorAll('input, button').forEach(el => el.disabled = isLoading);
-  resultCard.setAttribute('aria-busy', String(isLoading));
-}
+  labelPill.textContent = uiLabel;
+  labelPill.className = 'pill ' + (
+    uiLabel === 'Planet' ? 'pill--success' :
+    uiLabel === 'Candidate' ? 'pill--warning' :
+    'pill--danger'
+  );
+  confidenceEl.textContent = (confidence!=null) ? `${Math.round(confidence*100)}%` : '—';
+  explainEl.textContent    = explain || '';
+  ridEl.textContent        = rid || '';
 
-function showError(msg){
-  formError.textContent = msg;
-  formError.classList.remove('hidden');
-}
+  const gifSrc = PRED_GIFS[uiLabel] || PRED_GIFS["Not planetary"];
+  if (resultGifImg) resultGifImg.src = gifSrc;
+  resultVisual.hidden = false;
 
-function clearError(){
-  formError.classList.add('hidden');
-  formError.textContent = '';
-}
+  resultEmpty.hidden = true;
+  resultBox.hidden   = false;
+  resultCard.hidden  = false;
 
-function paintLabel(label){
-  const L = String(label).toLowerCase();
-  labelPill.classList.remove('ok','warn','bad');
-  if (L.includes('planet') && !L.includes('candidate')) labelPill.classList.add('ok');
-  else if (L.includes('candidate')) labelPill.classList.add('warn');
-  else labelPill.classList.add('bad');
-  labelPill.textContent = String(label);
-}
-
-/* === NUEVO: aplicar UI (pill + GIF) según la etiqueta === */
-function applyPredictionUI(labelRaw){
-  const label = normLabel(labelRaw);
-  paintLabel(labelRaw);
-
-  const gifFig = document.getElementById('result-gif');
-  const gifImg = gifFig ? gifFig.querySelector('img') : null;
-  const src = PRED_GIFS[label];
-
-  if (gifFig && gifImg && src){
-    gifImg.src = src;
-    gifImg.alt = `${labelRaw} animation`;
-    gifFig.classList.remove('hidden');
-    gifFig.setAttribute('aria-hidden','false');
-  } else if (gifFig){
-    // si no hay match, ocultamos el GIF
-    gifFig.classList.add('hidden');
-    gifFig.setAttribute('aria-hidden','true');
-  }
-
-  // si tienes definida la función de autoajuste de altura, recalcula
-  if (typeof resizeResultGif === 'function'){
-    requestAnimationFrame(resizeResultGif);
+  if (probs && classes && debugBox && debugLines) {
+    const lines = classes.map((c,i)=>`${c}: ${(probs[i]*100).toFixed(1)}%`).join('\n');
+    debugLines.textContent = lines;
+    debugBox.hidden = false;
   }
 }
 
-form.addEventListener('submit', async (e)=>{
-  e.preventDefault();
-  clearError();
+function getNumber(id, fallback=null){
+  const el = document.getElementById(id);
+  const v = Number(el?.value);
+  return Number.isFinite(v) ? v : fallback;
+}
+function getUIValues(){
+  return {
+    kepid:            document.getElementById('kepid')?.value?.trim() || '',
+    orbital_period:   getNumber('orbital_period'),
+    transit_duration: getNumber('transit_duration'),
+    rp_over_rs:       getNumber('rp_over_rs'),
+    planet_radius:    getNumber('planet_radius'),
+    impact:           getNumber('impact'),
+    snr:              getNumber('snr'),
+    teff:             getNumber('teff'),
+  };
+}
 
-  if (!form.checkValidity()){
-    showError('Check required fields and numerical ranges.');
-    return;
+function deriveTransitDepthPPM(rp_over_rs){
+  if (!Number.isFinite(rp_over_rs)) return null;
+  return (rp_over_rs*rp_over_rs)*1e6;
+}
+
+function buildModelInput(featureOrder, ui){
+  const out = [];
+  for (const f of featureOrder){
+    switch (f){
+      case 'orbital_period':    out.push(ui.orbital_period); break;
+      case 'transit_duration':  out.push(ui.transit_duration); break;
+      case 'transit_depth':
+      case 'transit_depth_ppm': out.push(deriveTransitDepthPPM(ui.rp_over_rs)); break;
+      case 'planet_radius':
+      case 'planet_radius_r_earth':
+      case 'planet_radius_earth': out.push(ui.planet_radius); break;
+      default:
+        throw new Error(`Feature del modelo no soportada en UI: "${f}"`);
+    }
   }
+  if (out.some(v => v==null || !Number.isFinite(v))) {
+    throw new Error('Faltan valores numéricos para alguna feature del modelo.');
+  }
+  return new Float32Array(out);
+}
 
-  const payload = toPayload(new FormData(form));
-  setLoading(true);
+function softmax(arr){
+  const m = Math.max(...arr);
+  const exps = arr.map(v=>Math.exp(v-m));
+  const s = exps.reduce((a,b)=>a+b,0);
+  return exps.map(v=>v/s);
+}
 
+async function runOnnx(ui){
+  if (!ortSession) throw new Error('Sesión ONNX no inicializada.');
+
+  const inputArr = buildModelInput(meta.features, ui);
+  const feeds = { [modelInputName]: new ort.Tensor('float32', inputArr, [1, inputArr.length]) };
+  const outMap = await ortSession.run(feeds);
+  const labelFromModel = outMap.label?.data ? outMap.label.data[0] : null;
+  const vec = Array.from(outMap[modelOutputName].data);
+  const probs = (Math.abs(vec.reduce((a,b)=>a+b,0)-1) < 1e-3 && vec.every(p=>p>=0&&p<=1)) ? vec : softmax(vec);
+
+  const classes = (Array.isArray(meta.classes) && meta.classes.length === probs.length)
+    ? meta.classes
+    : probs.map((_,i)=>`Class_${i}`);
+
+  let bestIdx = 0; let best = probs[0];
+  for (let i=1; i<probs.length; i++){ if (probs[i] > best){ best = probs[i]; bestIdx = i; } }
+
+  return {
+    label: labelFromModel || classes[bestIdx],
+    confidence: best,
+    explain: `Features order: ${meta.features.join(', ')}`,
+    probs, classes
+  };
+}
+
+async function initOnnx(){
   try{
-    await new Promise(r => setTimeout(r, 800));
-    const score = Math.random();
-    const data = {
-      label: score > 0.7 ? 'Planet' : (score > 0.4 ? 'Candidate' : 'Not planetary'),
-      confidence: (0.65 + Math.random()*0.35).toFixed(2),
-      explain: 'Model based in transit/star params.',
-      request_id: payload.kepid || (Date.now().toString(36))
-    };
-
-    // Pinta resultado
-    resultEmpty.classList.add('hidden');
-    resultBox.classList.remove('hidden');
-
-    // === CAMBIO: antes llamabas a paintLabel; ahora usamos applyPredictionUI ===
-    applyPredictionUI(data.label);
-
-    confidenceEl.textContent = `${Number(data.confidence*100 || data.confidence).toFixed(0)}%`;
-    explainEl.textContent = data.explain;
-    ridEl.textContent = data.request_id;
-
+    const r = await fetch(META_URL, { cache:'no-store' });
+    if (!r.ok) throw new Error('No se pudo cargar meta.json');
+    meta = await r.json();
+    if (!Array.isArray(meta.features) || !meta.features.length) {
+      throw new Error("meta.json: 'features' vacío o ausente.");
+    }
+    
+    ort.env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/';
+    ortSession = await ort.InferenceSession.create(MODEL_URL, {
+      executionProviders: ['wasm'],
+      graphOptimizationLevel: 'all'
+    });
+    modelInputName  = ortSession.inputNames[0];
+    modelOutputName = 'probabilities';
+    console.log('Trained model ready', { modelInputName, modelOutputName, meta });
   }catch(err){
     console.error(err);
-    showError('Could not obtain prediction. Try again.');
-  }finally{
-    setLoading(false);
+    showError(`Error initiating model: ${err.message}`);
   }
-});
+}
 
-document.addEventListener("DOMContentLoaded", () => {
-  const sliders = [
-    "orbital_period",
-    "transit_duration",
-    "rp_over_rs",
-    "impact",
-    "snr",
-    "teff"
-  ];
+window.addEventListener('error', e => showError(e?.error?.message || e?.message || 'Unexpected error.'));
 
-  sliders.forEach(id => {
-    const slider = document.getElementById(id);
-    const output = document.getElementById(`val_${id}`);
-    if (slider && output) {
-      // valor inicial
-      output.textContent = slider.value;
+document.addEventListener('DOMContentLoaded', ()=>{ resetResults(); initOnnx(); });
 
-      // actualizar al mover
-      slider.addEventListener("input", () => {
-        output.textContent = slider.value;
-      });
+form?.addEventListener('submit', async (ev)=>{
+  ev.preventDefault(); clearError();
+  try{
+    submitBtn.disabled = true;
+    const ui = getUIValues();
+
+    for (const k of ['orbital_period','transit_duration','planet_radius','rp_over_rs']) {
+      if (!Number.isFinite(ui[k])) throw new Error(`The field "${k.replace('_',' ')}" is required.`);
     }
-  });
 
-  // observador para mostrar/ocultar el GIF en sincronía con #result
-  const result = document.getElementById("result");
-  const gif = document.getElementById("result-gif");
-  if (result && gif) {
-    const obs = new MutationObserver(() => {
-      const visible = !result.classList.contains("hidden");
-      gif.classList.toggle("hidden", !visible);
-      gif.setAttribute("aria-hidden", visible ? "false" : "true");
-      // ajustar altura si procede
-      if (visible && typeof resizeResultGif === 'function'){
-        requestAnimationFrame(resizeResultGif);
-      }
-    });
-    obs.observe(result, { attributes: true, attributeFilter: ["class"] });
+    const out = await runOnnx(ui);
+    applyPredictionUI(out.label, out.confidence, out.explain, ui.kepid, out.probs, out.classes);
+  }catch(err){
+    console.error(err);
+    showError(err.message || 'Prediction error.');
+  }finally{
+    submitBtn.disabled = false;
   }
 });
+
+form?.addEventListener('reset', ()=>{ clearError(); resetResults(); });
